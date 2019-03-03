@@ -1,5 +1,6 @@
 require 'dry/system/container'
 require 'rails/railtie'
+require 'dry/system/rails/patches'
 
 module Dry
   module System
@@ -44,7 +45,13 @@ module Dry
             app_namespace.send(:remove_const, :Container)
           end
           app_namespace.const_set(:Container, container)
+
+          if app_namespace.const_defined?(:Import)
+            app_namespace.send(:remove_const, :Import)
+          end
+          app_namespace.const_set(:Import, container.injector)
           container.config.name = name
+
           container.finalize!(freeze: !::Rails.env.test?)
         end
 
@@ -65,6 +72,10 @@ module Dry
 
         def container
           Railtie.config.container
+        end
+
+        def intjector
+          Railtie.config.injector
         end
       end
     end
